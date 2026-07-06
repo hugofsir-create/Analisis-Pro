@@ -1,0 +1,6 @@
+{
+  "name": "Analizador de Tiempos de Entrega",
+  "description": "Aplicación interactiva para analizar tiempos de entrega a partir de archivos Excel, calcular días transcurridos entre emisión y conforme, y visualizar indicadores clave de rendimiento (KPIs) y gráficos dinámicos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
