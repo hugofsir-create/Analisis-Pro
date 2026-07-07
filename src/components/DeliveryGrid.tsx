@@ -7,13 +7,14 @@ import React, { useState, useMemo } from 'react';
 import { DeliveryRecord } from '../types';
 import * as Lucide from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { calculateDaysBetween } from '../utils/deliveryParser';
 
 interface DeliveryGridProps {
   records: DeliveryRecord[];
   targetDays: number;
 }
 
-type SortField = 'orderId' | 'emissionDate' | 'conformeDate' | 'daysElapsed' | 'carrier' | 'client';
+type SortField = 'orderId' | 'emissionDate' | 'conformeDate' | 'daysElapsed' | 'carrier' | 'client' | 'localidad';
 type SortOrder = 'asc' | 'desc';
 
 export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays }) => {
@@ -99,6 +100,15 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
       let valA: any = a[sortField];
       let valB: any = b[sortField];
 
+      if (sortField === 'daysElapsed') {
+        if (valA === null && a.emissionDate) {
+          valA = calculateDaysBetween(a.emissionDate, new Date());
+        }
+        if (valB === null && b.emissionDate) {
+          valB = calculateDaysBetween(b.emissionDate, new Date());
+        }
+      }
+
       // Handle nulls
       if (valA === null || valA === undefined) return sortOrder === 'asc' ? 1 : -1;
       if (valB === null || valB === undefined) return sortOrder === 'asc' ? -1 : 1;
@@ -137,14 +147,23 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
       const formattedEmission = r.emissionDate ? r.emissionDate.toLocaleDateString('es-ES') : '';
       const formattedConforme = r.conformeDate ? r.conformeDate.toLocaleDateString('es-ES') : '';
       
+      const pendingDays = r.daysElapsed !== null 
+        ? null 
+        : (r.emissionDate ? calculateDaysBetween(r.emissionDate, new Date()) : null);
+
       return {
-        'CÓDIGO PEDIDO': r.orderId,
+        'N° DE REMITO': r.orderId,
+        'LOCALIDAD DE DESTINO': r.localidad || '—',
         'FECHA EMISIÓN (CALCULADA)': formattedEmission,
         'FECHA CONFORME (CALCULADA)': formattedConforme,
-        'DÍAS TRANSCURRIDOS': r.daysElapsed !== null ? r.daysElapsed : 'Pendiente',
+        'DÍAS TRANSCURRIDOS': r.daysElapsed !== null 
+          ? r.daysElapsed 
+          : (pendingDays !== null ? `${pendingDays} (Pendiente)` : 'Pendiente'),
         'ESTADO DE ENTREGA': r.status,
         'SLA OBJETIVO (DÍAS)': targetDays,
-        'DIFERENCIA SLA (DÍAS)': r.daysElapsed !== null ? r.daysElapsed - targetDays : '',
+        'DIFERENCIA SLA (DÍAS)': r.daysElapsed !== null 
+          ? r.daysElapsed - targetDays 
+          : (pendingDays !== null ? pendingDays - targetDays : ''),
         ...r.originalRow
       };
     });
@@ -250,7 +269,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
               </th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
                 <button onClick={() => handleSort('orderId')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
-                  ID Pedido {getSortIcon('orderId')}
+                  N° de Remito {getSortIcon('orderId')}
                 </button>
               </th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
@@ -269,6 +288,11 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
                 </button>
               </th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+                <button onClick={() => handleSort('localidad')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
+                  Localidad {getSortIcon('localidad')}
+                </button>
+              </th>
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
                 <button onClick={() => handleSort('client')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Cliente {getSortIcon('client')}
                 </button>
@@ -281,7 +305,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
           <tbody className="divide-y divide-[#1F1F24] bg-[#0E0E11]">
             {paginatedRecords.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center">
+                <td colSpan={8} className="py-12 text-center">
                   <Lucide.Inbox className="mx-auto h-12 w-12 text-zinc-600" />
                   <h3 className="mt-2 text-sm font-semibold text-zinc-300">Ningún registro encontrado</h3>
                   <p className="mt-1 text-xs text-zinc-500">Prueba ajustando los filtros o el término de búsqueda.</p>
@@ -320,11 +344,20 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
                             <span className="text-zinc-100">{record.daysElapsed}</span>
                             <span className="ml-1 text-xs text-zinc-500">días</span>
                           </div>
+                        ) : record.emissionDate ? (
+                          <div className="flex items-center text-amber-500 animate-pulse-slow" title="Días transcurridos hasta hoy para este pedido pendiente">
+                            <Lucide.Clock className="mr-1.5 h-3.5 w-3.5 animate-pulse shrink-0" />
+                            <span className="font-bold">{calculateDaysBetween(record.emissionDate, new Date())}</span>
+                            <span className="ml-1 text-[11px] text-amber-500/80 font-sans font-normal">días (Pendiente)</span>
+                          </div>
                         ) : (
                           <span className="text-amber-400 font-sans text-xs flex items-center">
                             <Lucide.Clock className="mr-1 h-3.5 w-3.5" /> Pendiente
                           </span>
                         )}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300">
+                        {record.localidad || '—'}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300">
                         {record.client}
@@ -359,7 +392,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
                     {/* Expanded Detail Row (Showing EACH column of the Excel file row) */}
                     {isExpanded && (
                       <tr className="bg-[#0A0A0C]">
-                        <td colSpan={7} className="px-6 py-4 border-y border-[#1F1F24]">
+                        <td colSpan={8} className="px-6 py-4 border-y border-[#1F1F24]">
                           <div className="rounded-lg border border-[#1F1F24] bg-[#121215] p-4">
                             <h5 className="mb-3 flex items-center text-xs font-bold uppercase tracking-wider text-zinc-400 font-display">
                               <Lucide.Info className="mr-1.5 h-4 w-4 text-indigo-400" />
@@ -368,8 +401,12 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
                             <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                               {/* Display Mapped Fields Highlighted */}
                               <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-2">
-                                <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Código del Pedido</span>
+                                <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">N° de Remito</span>
                                 <span className="text-xs font-medium text-zinc-100">{record.orderId}</span>
+                              </div>
+                              <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-2">
+                                <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Localidad de Destino</span>
+                                <span className="text-xs font-medium text-zinc-100">{record.localidad || '—'}</span>
                               </div>
                               <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-2">
                                 <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Fecha Emisión</span>

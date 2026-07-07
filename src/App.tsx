@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx';
 import { ColumnMapping, DeliveryRecord, PerformanceKPIs } from './types';
 import { MetricCard } from './components/MetricCard';
 import { ColumnMapper } from './components/ColumnMapper';
+import { LocalidadSlaConfig } from './components/LocalidadSlaConfig';
 import { DeliveryCharts } from './components/DeliveryCharts';
 import { DeliveryGrid } from './components/DeliveryGrid';
 import {
@@ -31,9 +32,19 @@ export default function App() {
     carrierKey: '',
     clientKey: '',
     statusKey: '',
-    orderIdKey: ''
+    orderIdKey: '',
+    localidadKey: ''
   });
   const [targetDays, setTargetDays] = useState<number>(7);
+  const [localidadSlaOverrides, setLocalidadSlaOverrides] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem('delivery_localidad_sla_overrides');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      console.error('Error loading SLA overrides:', e);
+      return {};
+    }
+  });
   const [fileName, setFileName] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'analytics' | 'grid' | 'comparison'>('analytics');
@@ -42,11 +53,24 @@ export default function App() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Get all unique localidades from rawData to allow setting custom SLAs
+  const uniqueLocalidades = useMemo(() => {
+    if (!rawData || !mapping.localidadKey) return [];
+    const set = new Set<string>();
+    rawData.forEach((row: any) => {
+      const loc = row[mapping.localidadKey!];
+      if (loc) {
+        set.add(String(loc).trim());
+      }
+    });
+    return Array.from(set).filter(Boolean).sort();
+  }, [rawData, mapping.localidadKey]);
+
   // Parse Excel/CSV raw JSON records into parsed DeliveryRecord models
   const processedRecords = useMemo(() => {
     if (!rawData) return [];
-    return processRawRows(rawData, mapping, targetDays);
-  }, [rawData, mapping, targetDays]);
+    return processRawRows(rawData, mapping, targetDays, localidadSlaOverrides);
+  }, [rawData, mapping, targetDays, localidadSlaOverrides]);
 
   // Compute overall delivery KPIs
   const kpis = useMemo(() => {
@@ -147,13 +171,20 @@ export default function App() {
     setAvailableKeys([]);
     setFileName('');
     setError(null);
+    try {
+      const saved = localStorage.getItem('delivery_localidad_sla_overrides');
+      setLocalidadSlaOverrides(saved ? JSON.parse(saved) : {});
+    } catch {
+      setLocalidadSlaOverrides({});
+    }
     setMapping({
       emissionDateKey: '',
       conformeDateKey: '',
       carrierKey: '',
       clientKey: '',
       statusKey: '',
-      orderIdKey: ''
+      orderIdKey: '',
+      localidadKey: ''
     });
   };
 
@@ -374,18 +405,32 @@ export default function App() {
                   <span className="text-xs font-normal text-zinc-500 group-open:hidden">Mostrar opciones de mapeo</span>
                   <span className="text-xs font-normal text-indigo-400 hidden group-open:inline">Ocultar opciones</span>
                 </summary>
-                <div className="border-t border-[#1F1F24] p-5 bg-[#121215]">
-                  <ColumnMapper
-                    availableKeys={availableKeys}
-                    mapping={mapping}
-                    onChangeMapping={setMapping}
-                    onApply={() => {
-                      // Trigger state refresh for processed records
-                      setRawData([...rawData]);
-                    }}
-                    targetDays={targetDays}
-                    onChangeTargetDays={setTargetDays}
-                  />
+                <div className="border-t border-[#1F1F24] p-5 bg-[#121215] space-y-6">
+                  <div className="grid gap-6 md:grid-cols-12">
+                    <div className={mapping.localidadKey ? 'md:col-span-7' : 'md:col-span-12'}>
+                      <ColumnMapper
+                        availableKeys={availableKeys}
+                        mapping={mapping}
+                        onChangeMapping={setMapping}
+                        onApply={() => {
+                          // Trigger state refresh for processed records
+                          setRawData([...rawData]);
+                        }}
+                        targetDays={targetDays}
+                        onChangeTargetDays={setTargetDays}
+                      />
+                    </div>
+                    {mapping.localidadKey && (
+                      <div className="md:col-span-5 border-t border-[#1F1F24] pt-6 md:border-t-0 md:border-l md:border-[#1F1F24] md:pt-0 md:pl-6">
+                        <LocalidadSlaConfig
+                          uniqueLocalidades={uniqueLocalidades}
+                          localidadSlaOverrides={localidadSlaOverrides}
+                          onChangeOverrides={setLocalidadSlaOverrides}
+                          defaultTargetDays={targetDays}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </details>
             </div>

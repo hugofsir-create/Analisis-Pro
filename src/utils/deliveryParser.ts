@@ -104,8 +104,12 @@ export function autoDetectMappings(keys: string[]): ColumnMapping {
   ];
 
   const orderKeywords = [
-    'pedido', 'order', 'id', 'orden', 'numero', 'numero de pedido', 'nro', 'codigo', 
+    'n° de remitos', 'nº de remitos', 'no de remitos', 'n de remitos', 'remitos', 'n° de remito', 'remito', 'pedido', 'order', 'id', 'orden', 'numero', 'numero de pedido', 'nro', 'codigo', 
     'guia', 'guia de remision', 'documento', 'invoice', 'factura'
+  ];
+
+  const localidadKeywords = [
+    'localidad de destino', 'localidad', 'destino localidad', 'ciudad', 'ciudad de destino', 'destination city', 'provincia', 'departamento', 'comuna'
   ];
 
   // Pick first string or empty if not detected
@@ -114,6 +118,7 @@ export function autoDetectMappings(keys: string[]): ColumnMapping {
   const carrierKey = findMatch(carrierKeywords) || '';
   const clientKey = findMatch(clientKeywords) || '';
   const orderIdKey = findMatch(orderKeywords) || keys[0] || ''; // Fallback to first column for ID
+  const localidadKey = findMatch(localidadKeywords) || '';
 
   return {
     emissionDateKey,
@@ -121,7 +126,8 @@ export function autoDetectMappings(keys: string[]): ColumnMapping {
     carrierKey,
     clientKey,
     statusKey: '',
-    orderIdKey
+    orderIdKey,
+    localidadKey
   };
 }
 
@@ -144,7 +150,12 @@ export function calculateDaysBetween(start: Date | null, end: Date | null): numb
 /**
  * Processes a raw row array (parsed from excel) into typed DeliveryRecord model.
  */
-export function processRawRows(rawRows: any[], mapping: ColumnMapping, targetDays: number = 7): DeliveryRecord[] {
+export function processRawRows(
+  rawRows: any[], 
+  mapping: ColumnMapping, 
+  targetDays: number = 7, 
+  localidadSlaOverrides: Record<string, number> = {}
+): DeliveryRecord[] {
   return rawRows.map((row, index) => {
     const rawEmission = row[mapping.emissionDateKey];
     const rawConforme = row[mapping.conformeDateKey];
@@ -152,11 +163,17 @@ export function processRawRows(rawRows: any[], mapping: ColumnMapping, targetDay
     const emissionDate = parseDateValue(rawEmission);
     const conformeDate = parseDateValue(rawConforme);
     const daysElapsed = calculateDaysBetween(emissionDate, conformeDate);
+    const localidad = mapping.localidadKey ? String(row[mapping.localidadKey] || 'No Especificada') : 'No Especificada';
+
+    // Get parameterized lead time for this specific locality, fallback to global targetDays
+    const currentTargetDays = (localidadSlaOverrides && localidadSlaOverrides[localidad] !== undefined)
+      ? localidadSlaOverrides[localidad]
+      : targetDays;
 
     let status: DeliveryRecord['status'] = 'Sin Datos';
     if (emissionDate && conformeDate) {
       if (daysElapsed !== null) {
-        status = daysElapsed <= targetDays ? 'A tiempo' : 'Atrasado';
+        status = daysElapsed <= currentTargetDays ? 'A tiempo' : 'Atrasado';
       }
     } else if (emissionDate && !conformeDate) {
       status = 'Pendiente';
@@ -175,7 +192,8 @@ export function processRawRows(rawRows: any[], mapping: ColumnMapping, targetDay
       carrier,
       client,
       status,
-      originalRow: row
+      originalRow: row,
+      localidad
     };
   });
 }
@@ -192,8 +210,9 @@ export function computeKPIs(records: DeliveryRecord[], targetDays: number = 7): 
   const totalDays = validDays.reduce((sum, val) => sum + val, 0);
   const averageDays = validDays.length > 0 ? Number((totalDays / validDays.length).toFixed(1)) : 0;
 
-  const onTimeCount = completed.filter(r => (r.daysElapsed as number) <= targetDays).length;
-  const delayedCount = completed.filter(r => (r.daysElapsed as number) > targetDays).length;
+  // Use pre-computed status (respects per-locality custom targetDays)
+  const onTimeCount = completed.filter(r => r.status === 'A tiempo').length;
+  const delayedCount = completed.filter(r => r.status === 'Atrasado').length;
 
   const totalCompleted = completed.length;
   const onTimeRate = totalCompleted > 0 ? Number(((onTimeCount / totalCompleted) * 100).toFixed(1)) : 0;
@@ -230,14 +249,14 @@ export function computeGroupedMetrics(records: DeliveryRecord[], field: 'carrier
 
   return Object.entries(groups).map(([groupValue, groupRecords]) => {
     const completed = groupRecords.filter(r => r.daysElapsed !== null);
-    const pending = groupRecords.filter(r => r.status === 'Pendiente');
     
     const validDays = completed.map(r => r.daysElapsed as number);
     const totalDays = validDays.reduce((sum, val) => sum + val, 0);
     const averageDays = validDays.length > 0 ? Number((totalDays / validDays.length).toFixed(1)) : 0;
 
-    const onTimeCount = completed.filter(r => (r.daysElapsed as number) <= targetDays).length;
-    const delayedCount = completed.filter(r => (r.daysElapsed as number) > targetDays).length;
+    // Use pre-computed status (respects per-locality custom targetDays)
+    const onTimeCount = completed.filter(r => r.status === 'A tiempo').length;
+    const delayedCount = completed.filter(r => r.status === 'Atrasado').length;
 
     const totalCompleted = completed.length;
     const onTimeRate = totalCompleted > 0 ? Number(((onTimeCount / totalCompleted) * 100).toFixed(1)) : 0;
@@ -368,12 +387,12 @@ export function generateSampleData(): Record<string, any>[] {
     };
 
     data.push({
-      'ID Pedido': `PED-2026-${1000 + i}`,
+      'N° de remitos': `REM-2026-${1000 + i}`,
       'Fecha Emisión': formatShortDate(emissionDate),
       'Fecha Conforme': conformeDate ? formatShortDate(conformeDate as Date) : '',
       'Transportista': carriers[Math.floor(Math.random() * carriers.length)],
       'Cliente': clients[Math.floor(Math.random() * clients.length)],
-      'Ciudad Destino': cities[Math.floor(Math.random() * cities.length)],
+      'Localidad de destino': cities[Math.floor(Math.random() * cities.length)],
       'Tipo de Envío': shippingTypes[i % shippingTypes.length],
       'Peso (kg)': Number((Math.random() * 18 + 0.5).toFixed(1)),
       'Valor Declarado ($)': Math.floor(Math.random() * 450) + 50

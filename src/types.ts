@@ -10,6 +10,7 @@ export interface ColumnMapping {
   clientKey: string;
   statusKey: string;
   orderIdKey: string;
+  localidadKey?: string;
 }
 
 export interface DeliveryRecord {
@@ -22,6 +23,7 @@ export interface DeliveryRecord {
   client: string; // Cliente / Destinatario
   status: 'A tiempo' | 'Atrasado' | 'Pendiente' | 'Sin Datos';
   originalRow: Record<string, any>; // Keep all original excel columns
+  localidad?: string; // Localidad de destino
 }
 
 export interface PerformanceKPIs {
