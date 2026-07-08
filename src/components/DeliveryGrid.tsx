@@ -20,7 +20,6 @@ type SortOrder = 'asc' | 'desc';
 export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [carrierFilter, setCarrierFilter] = useState<string>('all');
   
   // Sorting state
   const [sortField, setSortField] = useState<SortField>('emissionDate');
@@ -50,12 +49,6 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
       setExpandedRows(new Set(paginatedRecords.map(r => r.id)));
     }
   };
-
-  // Get unique Carriers for filtering
-  const carriersList = useMemo(() => {
-    const unique = new Set(records.map(r => r.carrier).filter(Boolean));
-    return Array.from(unique).sort();
-  }, [records]);
 
   // Handle Sort Change
   const handleSort = (field: SortField) => {
@@ -88,11 +81,6 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
     // Status filter
     if (statusFilter !== 'all') {
       result = result.filter(r => r.status === statusFilter);
-    }
-
-    // Carrier filter
-    if (carrierFilter !== 'all') {
-      result = result.filter(r => r.carrier === carrierFilter);
     }
 
     // Sort
@@ -130,7 +118,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
     });
 
     return result;
-  }, [records, searchTerm, statusFilter, carrierFilter, sortField, sortOrder]);
+  }, [records, searchTerm, statusFilter, sortField, sortOrder]);
 
   // Paginated records
   const paginatedRecords = useMemo(() => {
@@ -220,23 +208,6 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-500">
               <Lucide.Filter className="h-4 w-4" />
-            </div>
-          </div>
-
-          {/* Filter by Carrier */}
-          <div className="relative w-full sm:w-48">
-            <select
-              value={carrierFilter}
-              onChange={(e) => { setCarrierFilter(e.target.value); setCurrentPage(1); }}
-              className="w-full appearance-none rounded-lg border border-[#2A2A32] bg-[#16161A] px-3 py-2 text-sm text-zinc-200 focus:border-indigo-500/80 focus:bg-[#1E1E24] focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
-            >
-              <option value="all">Todos los Transportistas</option>
-              {carriersList.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-500">
-              <Lucide.Truck className="h-4 w-4" />
             </div>
           </div>
         </div>
