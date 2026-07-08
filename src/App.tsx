@@ -370,8 +370,8 @@ export default function App() {
               />
               <MetricCard
                 title="Promedio Entrega"
-                value={`${kpis.averageDays} días`}
-                subtitle={`Mín: ${kpis.minDays}d | Máx: ${kpis.maxDays}d`}
+                value={`${kpis.averageDays} d. hábiles`}
+                subtitle={`Mín: ${kpis.minDays} dh | Máx: ${kpis.maxDays} dh`}
                 icon="Clock"
                 color="indigo"
                 id="kpi-avg"

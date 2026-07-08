@@ -69,7 +69,7 @@ export const DeliveryCharts: React.FC<DeliveryChartsProps> = ({ records, kpis, t
           <p className="text-xs font-bold text-white mb-1.5 font-display">{label}</p>
           {payload.map((p: any, i: number) => (
             <p key={i} className="text-xs font-medium" style={{ color: p.color || p.fill }}>
-              {p.name}: <span className="font-bold text-white">{p.value} {p.name.includes('promedio') || p.name.includes('Promedio') ? 'días' : 'envíos'}</span>
+              {p.name}: <span className="font-bold text-white">{p.value} {p.name.includes('promedio') || p.name.includes('Promedio') ? 'días hábiles' : 'envíos'}</span>
             </p>
           ))}
         </div>
@@ -167,7 +167,7 @@ export const DeliveryCharts: React.FC<DeliveryChartsProps> = ({ records, kpis, t
           <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
               <h4 className="font-semibold text-white font-display">Tabla Comparativa de Rendimiento</h4>
-              <p className="text-xs text-zinc-400">Promedio de días de entrega</p>
+              <p className="text-xs text-zinc-400">Promedio de días hábiles de entrega</p>
             </div>
             
             {/* Field Toggle */}

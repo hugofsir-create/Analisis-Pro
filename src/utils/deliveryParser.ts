@@ -132,19 +132,35 @@ export function autoDetectMappings(keys: string[]): ColumnMapping {
 }
 
 /**
- * Calculates differences in days between two date objects.
+ * Calculates differences in business/working days between two date objects (excluding Saturdays and Sundays).
  */
 export function calculateDaysBetween(start: Date | null, end: Date | null): number | null {
   if (!start || !end) return null;
   
-  // Set both dates to midnight UTC to calculate purely full days elapsed
-  const startDateOnly = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
-  const endDateOnly = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+  // Set both dates to midnight local time to calculate purely full days elapsed
+  const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
-  const diffMs = endDateOnly - startDateOnly;
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-  
-  return diffDays;
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return null;
+
+  // Handle case where start is after end (return a negative value)
+  const isNegative = startDate > endDate;
+  const d1 = isNegative ? endDate : startDate;
+  const d2 = isNegative ? startDate : endDate;
+
+  let businessDays = 0;
+  const curDate = new Date(d1.getTime());
+
+  // Loop day-by-day from d1 to d2 (excluding the start day itself, representing elapsed days/transitions)
+  while (curDate < d2) {
+    curDate.setDate(curDate.getDate() + 1);
+    const dayOfWeek = curDate.getDay(); // 0 = Sunday, 6 = Saturday
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      businessDays++;
+    }
+  }
+
+  return isNegative ? -businessDays : businessDays;
 }
 
 /**

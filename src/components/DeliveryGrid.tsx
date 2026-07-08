@@ -284,7 +284,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
               </th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
                 <button onClick={() => handleSort('daysElapsed')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
-                  Días Transcurridos {getSortIcon('daysElapsed')}
+                  Días Hábiles {getSortIcon('daysElapsed')}
                 </button>
               </th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
@@ -342,13 +342,13 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
                         {record.daysElapsed !== null ? (
                           <div className="flex items-center">
                             <span className="text-zinc-100">{record.daysElapsed}</span>
-                            <span className="ml-1 text-xs text-zinc-500">días</span>
+                            <span className="ml-1 text-xs text-zinc-500">días hábiles</span>
                           </div>
                         ) : record.emissionDate ? (
-                          <div className="flex items-center text-amber-500 animate-pulse-slow" title="Días transcurridos hasta hoy para este pedido pendiente">
+                          <div className="flex items-center text-amber-500 animate-pulse-slow" title="Días hábiles transcurridos hasta hoy para este pedido pendiente">
                             <Lucide.Clock className="mr-1.5 h-3.5 w-3.5 animate-pulse shrink-0" />
                             <span className="font-bold">{calculateDaysBetween(record.emissionDate, new Date())}</span>
-                            <span className="ml-1 text-[11px] text-amber-500/80 font-sans font-normal">días (Pendiente)</span>
+                            <span className="ml-1 text-[11px] text-amber-500/80 font-sans font-normal">d. hábiles (Pendiente)</span>
                           </div>
                         ) : (
                           <span className="text-amber-400 font-sans text-xs flex items-center">
