@@ -24,18 +24,55 @@ import {
 } from './utils/deliveryParser';
 
 export default function App() {
-  const [rawData, setRawData] = useState<any[] | null>(null);
-  const [availableKeys, setAvailableKeys] = useState<string[]>([]);
-  const [mapping, setMapping] = useState<ColumnMapping>({
-    emissionDateKey: '',
-    conformeDateKey: '',
-    carrierKey: '',
-    clientKey: '',
-    statusKey: '',
-    orderIdKey: '',
-    localidadKey: ''
+  const [rawData, setRawData] = useState<any[] | null>(() => {
+    try {
+      const saved = localStorage.getItem('delivery_analyzer_raw_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.error('Error loading raw data from localStorage:', e);
+      return null;
+    }
   });
-  const [targetDays, setTargetDays] = useState<number>(7);
+  const [availableKeys, setAvailableKeys] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('delivery_analyzer_available_keys');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [mapping, setMapping] = useState<ColumnMapping>(() => {
+    try {
+      const saved = localStorage.getItem('delivery_analyzer_mapping');
+      return saved ? JSON.parse(saved) : {
+        emissionDateKey: '',
+        conformeDateKey: '',
+        carrierKey: '',
+        clientKey: '',
+        statusKey: '',
+        orderIdKey: '',
+        localidadKey: ''
+      };
+    } catch {
+      return {
+        emissionDateKey: '',
+        conformeDateKey: '',
+        carrierKey: '',
+        clientKey: '',
+        statusKey: '',
+        orderIdKey: '',
+        localidadKey: ''
+      };
+    }
+  });
+  const [targetDays, setTargetDays] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('delivery_analyzer_target_days');
+      return saved ? parseInt(saved, 10) : 7;
+    } catch {
+      return 7;
+    }
+  });
   const [localidadSlaOverrides, setLocalidadSlaOverrides] = useState<Record<string, number>>(() => {
     try {
       const saved = localStorage.getItem('delivery_localidad_sla_overrides');
@@ -45,13 +82,68 @@ export default function App() {
       return {};
     }
   });
-  const [fileName, setFileName] = useState<string>('');
+  const [fileName, setFileName] = useState<string>(() => {
+    try {
+      return localStorage.getItem('delivery_analyzer_file_name') || '';
+    } catch {
+      return '';
+    }
+  });
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'analytics' | 'grid' | 'comparison'>('analytics');
   const [comparisonType, setComparisonType] = useState<'carrier' | 'client'>('carrier');
   const [isDragActive, setIsDragActive] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync state to localStorage
+  React.useEffect(() => {
+    try {
+      if (rawData) {
+        localStorage.setItem('delivery_analyzer_raw_data', JSON.stringify(rawData));
+      } else {
+        localStorage.removeItem('delivery_analyzer_raw_data');
+      }
+    } catch (e) {
+      console.error('Error saving raw data to localStorage:', e);
+    }
+  }, [rawData]);
+
+  React.useEffect(() => {
+    try {
+      if (availableKeys && availableKeys.length > 0) {
+        localStorage.setItem('delivery_analyzer_available_keys', JSON.stringify(availableKeys));
+      } else {
+        localStorage.removeItem('delivery_analyzer_available_keys');
+      }
+    } catch {}
+  }, [availableKeys]);
+
+  React.useEffect(() => {
+    try {
+      if (mapping && mapping.emissionDateKey) {
+        localStorage.setItem('delivery_analyzer_mapping', JSON.stringify(mapping));
+      } else {
+        localStorage.removeItem('delivery_analyzer_mapping');
+      }
+    } catch {}
+  }, [mapping]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('delivery_analyzer_target_days', String(targetDays));
+    } catch {}
+  }, [targetDays]);
+
+  React.useEffect(() => {
+    try {
+      if (fileName) {
+        localStorage.setItem('delivery_analyzer_file_name', fileName);
+      } else {
+        localStorage.removeItem('delivery_analyzer_file_name');
+      }
+    } catch {}
+  }, [fileName]);
 
   // Get all unique localidades from rawData to allow setting custom SLAs
   const uniqueLocalidades = useMemo(() => {
@@ -155,23 +247,17 @@ export default function App() {
     if (file) handleFile(file);
   };
 
-  // Loads the rich sample dataset
-  const handleLoadDemoData = () => {
-    const demoJson = generateSampleData();
-    const keys = Object.keys(demoJson[0]);
-    setAvailableKeys(keys);
-    setRawData(demoJson);
-    setMapping(autoDetectMappings(keys));
-    setFileName('Datos_Ejemplo_Tiempos_Entrega.xlsx');
-    setError(null);
-  };
-
   const handleReset = () => {
     setRawData(null);
     setAvailableKeys([]);
     setFileName('');
     setError(null);
     try {
+      localStorage.removeItem('delivery_analyzer_raw_data');
+      localStorage.removeItem('delivery_analyzer_available_keys');
+      localStorage.removeItem('delivery_analyzer_mapping');
+      localStorage.removeItem('delivery_analyzer_file_name');
+      
       const saved = localStorage.getItem('delivery_localidad_sla_overrides');
       setLocalidadSlaOverrides(saved ? JSON.parse(saved) : {});
     } catch {
@@ -310,20 +396,6 @@ export default function App() {
               </div>
             </motion.div>
 
-            {/* Demo Instant Action */}
-            <div className="mt-8 flex flex-col items-center justify-center rounded-xl bg-indigo-950/10 p-5 border border-indigo-500/15">
-              <span className="text-xs font-semibold text-indigo-400">
-                ¿No tienes un archivo Excel listo para probar?
-              </span>
-              <button
-                type="button"
-                onClick={handleLoadDemoData}
-                className="mt-3 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-500/10 hover:bg-indigo-500 cursor-pointer transition"
-              >
-                <Lucide.FileSpreadsheet className="mr-1.5 h-4 w-4" />
-                Cargar datos demostrativos estructurados
-              </button>
-            </div>
           </div>
         ) : (
           /* State: File has been loaded, active analytics view */
