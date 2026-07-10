@@ -137,6 +137,14 @@ export default function App() {
 
   React.useEffect(() => {
     try {
+      localStorage.setItem('delivery_localidad_sla_overrides', JSON.stringify(localidadSlaOverrides));
+    } catch (e) {
+      console.error('Error saving localidad SLA overrides:', e);
+    }
+  }, [localidadSlaOverrides]);
+
+  React.useEffect(() => {
+    try {
       if (fileName) {
         localStorage.setItem('delivery_analyzer_file_name', fileName);
       } else {

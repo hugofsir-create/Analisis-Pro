@@ -20,17 +20,6 @@ export const LocalidadSlaConfig: React.FC<LocalidadSlaConfigProps> = ({
   defaultTargetDays,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSaved, setIsSaved] = useState(false);
-
-  // Check if there are any changes compared to what is currently saved in localStorage
-  const hasUnsavedChanges = useMemo(() => {
-    try {
-      const saved = localStorage.getItem('delivery_localidad_sla_overrides') || '{}';
-      return JSON.stringify(localidadSlaOverrides) !== saved;
-    } catch {
-      return false;
-    }
-  }, [localidadSlaOverrides]);
 
   if (uniqueLocalidades.length === 0) {
     return (
@@ -61,18 +50,6 @@ export const LocalidadSlaConfig: React.FC<LocalidadSlaConfigProps> = ({
 
   const handleResetAll = () => {
     onChangeOverrides({});
-  };
-
-  const handleSave = () => {
-    try {
-      localStorage.setItem('delivery_localidad_sla_overrides', JSON.stringify(localidadSlaOverrides));
-      setIsSaved(true);
-      setTimeout(() => {
-        setIsSaved(false);
-      }, 2500);
-    } catch (e) {
-      console.error('Error saving overrides to localStorage:', e);
-    }
   };
 
   return (
@@ -183,40 +160,17 @@ export const LocalidadSlaConfig: React.FC<LocalidadSlaConfigProps> = ({
       {/* Save Action Area */}
       <div className="mt-4 pt-4 border-t border-[#1F1F24] flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          {hasUnsavedChanges ? (
-            <span className="inline-flex items-center text-xs text-amber-400 font-medium">
-              <Lucide.AlertCircle className="mr-1.5 h-3.5 w-3.5 shrink-0" />
-              Cambios sin guardar
+          <span className="inline-flex items-center text-xs text-emerald-400 font-medium">
+            <span className="relative flex h-2 w-2 mr-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-          ) : (
-            <span className="inline-flex items-center text-xs text-emerald-400 font-medium">
-              <Lucide.CheckCircle2 className="mr-1.5 h-3.5 w-3.5 shrink-0" />
-              SLA guardado
-            </span>
-          )}
+            SLA guardado en tiempo real
+          </span>
         </div>
-
-        <button
-          onClick={handleSave}
-          className={`inline-flex items-center justify-center rounded-lg px-3.5 py-1.5 text-xs font-semibold shadow-sm transition-all cursor-pointer ${
-            hasUnsavedChanges
-              ? 'bg-indigo-600 hover:bg-indigo-500 text-white font-bold ring-1 ring-indigo-500/20 hover:scale-[1.02] active:scale-[0.98]'
-              : 'bg-[#1C1C22] text-zinc-400 cursor-not-allowed border border-[#2A2A32]'
-          }`}
-          disabled={!hasUnsavedChanges && !isSaved}
-        >
-          {isSaved ? (
-            <>
-              <Lucide.Check className="mr-1.5 h-3.5 w-3.5 text-emerald-400 stroke-[3]" />
-              ¡Guardado!
-            </>
-          ) : (
-            <>
-              <Lucide.Save className="mr-1.5 h-3.5 w-3.5" />
-              Guardar Cambios
-            </>
-          )}
-        </button>
+        <div className="text-[10px] text-zinc-500 font-mono">
+          Navegador Sincronizado
+        </div>
       </div>
     </div>
   );
