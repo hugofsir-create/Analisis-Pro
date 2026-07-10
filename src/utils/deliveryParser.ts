@@ -112,6 +112,10 @@ export function autoDetectMappings(keys: string[]): ColumnMapping {
     'localidad de destino', 'localidad', 'destino localidad', 'ciudad', 'ciudad de destino', 'destination city', 'provincia', 'departamento', 'comuna'
   ];
 
+  const statusKeywords = [
+    'estado de viaje', 'estado_viaje', 'estado de entrega', 'estado_entrega', 'estado de envio', 'estado de los viajes', 'estado del viaje', 'estado', 'status', 'situacion', 'state', 'trip status', 'delivery status'
+  ];
+
   // Pick first string or empty if not detected
   const emissionDateKey = findMatch(emissionKeywords) || keys.find(k => k.toLowerCase().includes('emisi')) || '';
   const conformeDateKey = findMatch(conformeKeywords) || keys.find(k => k.toLowerCase().includes('confor') || k.toLowerCase().includes('entreg')) || '';
@@ -119,13 +123,14 @@ export function autoDetectMappings(keys: string[]): ColumnMapping {
   const clientKey = findMatch(clientKeywords) || '';
   const orderIdKey = findMatch(orderKeywords) || keys[0] || ''; // Fallback to first column for ID
   const localidadKey = findMatch(localidadKeywords) || '';
+  const statusKey = findMatch(statusKeywords) || keys.find(k => k.toLowerCase().includes('est') || k.toLowerCase().includes('stat')) || '';
 
   return {
     emissionDateKey,
     conformeDateKey,
     carrierKey,
     clientKey,
-    statusKey: '',
+    statusKey,
     orderIdKey,
     localidadKey
   };

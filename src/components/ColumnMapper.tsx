@@ -212,6 +212,30 @@ export const ColumnMapper: React.FC<ColumnMapperProps> = ({
           </div>
         </div>
 
+        {/* Estado del Viaje (Original Excel) */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-zinc-300">
+            Estado de Viaje / Entrega (Excel)
+          </label>
+          <div className="relative">
+            <select
+              value={mapping.statusKey || ''}
+              onChange={(e) => handleSelectChange('statusKey', e.target.value)}
+              className="w-full appearance-none rounded-lg border border-[#2A2A32] bg-[#16161A] px-3 py-2 text-sm text-zinc-100 focus:border-indigo-500 focus:bg-[#1E1E24] focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+            >
+              <option value="">-- No mapear / Omitir --</option>
+              {availableKeys.map((key) => (
+                <option key={key} value={key}>
+                  {key}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400">
+              <Lucide.ChevronDown className="h-4 w-4" />
+            </div>
+          </div>
+        </div>
+
         {/* Target SLA days limit */}
         <div>
           <label className="mb-1 block text-xs font-medium text-zinc-300 flex items-center justify-between">

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { DeliveryRecord } from '../types';
+import { DeliveryRecord, ColumnMapping } from '../types';
 import * as Lucide from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { calculateDaysBetween } from '../utils/deliveryParser';
@@ -12,12 +12,13 @@ import { calculateDaysBetween } from '../utils/deliveryParser';
 interface DeliveryGridProps {
   records: DeliveryRecord[];
   targetDays: number;
+  mapping?: ColumnMapping;
 }
 
 type SortField = 'orderId' | 'emissionDate' | 'conformeDate' | 'daysElapsed' | 'carrier' | 'client' | 'localidad';
 type SortOrder = 'asc' | 'desc';
 
-export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays }) => {
+export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays, mapping }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
@@ -225,8 +226,8 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
       </div>
 
       {/* Grid Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-[#1F1F24]">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="min-w-[1100px] w-full divide-y divide-[#1F1F24]">
           <thead className="bg-[#16161A]/60">
             <tr>
               <th scope="col" className="w-10 px-4 py-3 text-left">
@@ -269,14 +270,19 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
                 </button>
               </th>
               <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
-                Estado
+                Estado SLA
               </th>
+              {mapping?.statusKey && (
+                <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+                  Estado Viaje (Excel)
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-[#1F1F24] bg-[#0E0E11]">
             {paginatedRecords.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-12 text-center">
+                <td colSpan={mapping?.statusKey ? 9 : 8} className="py-12 text-center">
                   <Lucide.Inbox className="mx-auto h-12 w-12 text-zinc-600" />
                   <h3 className="mt-2 text-sm font-semibold text-zinc-300">Ningún registro encontrado</h3>
                   <p className="mt-1 text-xs text-zinc-500">Prueba ajustando los filtros o el término de búsqueda.</p>
@@ -358,12 +364,48 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays 
                           </span>
                         )}
                       </td>
+                      {mapping?.statusKey && (
+                        <td className="whitespace-nowrap px-4 py-3 text-center text-sm">
+                          {(() => {
+                            const val = record.originalRow[mapping.statusKey];
+                            if (val === null || val === undefined || val === '') {
+                              return <span className="text-zinc-600">—</span>;
+                            }
+                            const valStr = String(val).trim();
+                            const valLower = valStr.toLowerCase();
+                            // Style common statuses dynamically if they match standard words
+                            let badgeStyle = "bg-zinc-800/60 text-zinc-300 border border-[#272730]";
+                            let dotStyle = "bg-zinc-400";
+                            
+                            if (valLower.includes('entreg') || valLower.includes('complet') || valLower.includes('exit') || valLower.includes('confor')) {
+                              badgeStyle = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                              dotStyle = "bg-emerald-400";
+                            } else if (valLower.includes('viaje') || valLower.includes('transit') || valLower.includes('camino') || valLower.includes('ruta') || valLower.includes('despach')) {
+                              badgeStyle = "bg-blue-500/10 text-blue-400 border border-blue-500/20";
+                              dotStyle = "bg-blue-400";
+                            } else if (valLower.includes('pendient') || valLower.includes('program') || valLower.includes('espera') || valLower.includes('demor')) {
+                              badgeStyle = "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                              dotStyle = "bg-amber-400";
+                            } else if (valLower.includes('cancel') || valLower.includes('rechaz') || valLower.includes('siniestr') || valLower.includes('error') || valLower.includes('fall')) {
+                              badgeStyle = "bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                              dotStyle = "bg-rose-400";
+                            }
+                            
+                            return (
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeStyle}`}>
+                                <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${dotStyle}`}></span>
+                                {valStr}
+                              </span>
+                            );
+                          })()}
+                        </td>
+                      )}
                     </tr>
                     
                     {/* Expanded Detail Row (Showing EACH column of the Excel file row) */}
                     {isExpanded && (
                       <tr className="bg-[#0A0A0C]">
-                        <td colSpan={8} className="px-6 py-4 border-y border-[#1F1F24]">
+                        <td colSpan={mapping?.statusKey ? 9 : 8} className="px-6 py-4 border-y border-[#1F1F24]">
                           <div className="rounded-lg border border-[#1F1F24] bg-[#121215] p-4">
                             <h5 className="mb-3 flex items-center text-xs font-bold uppercase tracking-wider text-zinc-400 font-display">
                               <Lucide.Info className="mr-1.5 h-4 w-4 text-indigo-400" />

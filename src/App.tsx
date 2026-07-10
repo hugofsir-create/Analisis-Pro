@@ -575,6 +575,7 @@ export default function App() {
                 <DeliveryGrid
                   records={processedRecords}
                   targetDays={targetDays}
+                  mapping={mapping}
                 />
               </motion.div>
             )}
