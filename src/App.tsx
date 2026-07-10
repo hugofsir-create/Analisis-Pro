@@ -121,10 +121,8 @@ export default function App() {
 
   React.useEffect(() => {
     try {
-      if (mapping && mapping.emissionDateKey) {
+      if (mapping) {
         localStorage.setItem('delivery_analyzer_mapping', JSON.stringify(mapping));
-      } else {
-        localStorage.removeItem('delivery_analyzer_mapping');
       }
     } catch {}
   }, [mapping]);

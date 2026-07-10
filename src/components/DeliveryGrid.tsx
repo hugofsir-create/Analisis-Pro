@@ -227,10 +227,10 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
 
       {/* Grid Table */}
       <div className="overflow-x-auto custom-scrollbar">
-        <table className="min-w-[1100px] w-full divide-y divide-[#1F1F24]">
+        <table className="min-w-[1300px] w-full divide-y divide-[#1F1F24] table-layout-auto">
           <thead className="bg-[#16161A]/60">
             <tr>
-              <th scope="col" className="w-10 px-4 py-3 text-left">
+              <th scope="col" className="w-12 px-4 py-3 text-left">
                 <button 
                   onClick={toggleAllRows}
                   className="rounded-sm p-1 hover:bg-[#272730] text-zinc-400 cursor-pointer"
@@ -239,41 +239,41 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                   <Lucide.ChevronsUpDown className="h-4 w-4" />
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[150px]">
                 <button onClick={() => handleSort('orderId')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   N° de Remito {getSortIcon('orderId')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[140px]">
                 <button onClick={() => handleSort('emissionDate')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Fecha Emisión {getSortIcon('emissionDate')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[140px]">
                 <button onClick={() => handleSort('conformeDate')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Fecha Conforme {getSortIcon('conformeDate')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[160px]">
                 <button onClick={() => handleSort('daysElapsed')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Días Hábiles {getSortIcon('daysElapsed')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[180px]">
                 <button onClick={() => handleSort('localidad')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Localidad {getSortIcon('localidad')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[200px]">
                 <button onClick={() => handleSort('client')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Cliente {getSortIcon('client')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+              <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[140px]">
                 Estado SLA
               </th>
               {mapping?.statusKey && (
-                <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display">
+                <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[190px]">
                   Estado Viaje (Excel)
                 </th>
               )}
