@@ -226,11 +226,11 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
       </div>
 
       {/* Grid Table */}
-      <div className="overflow-x-auto custom-scrollbar">
-        <table className="min-w-[1300px] w-full divide-y divide-[#1F1F24] table-layout-auto">
+      <div className="overflow-x-auto custom-scrollbar w-full">
+        <table className="min-w-full divide-y divide-[#1F1F24] table-auto">
           <thead className="bg-[#16161A]/60">
             <tr>
-              <th scope="col" className="w-12 px-4 py-3 text-left">
+              <th scope="col" className="w-10 px-3 py-3 text-center">
                 <button 
                   onClick={toggleAllRows}
                   className="rounded-sm p-1 hover:bg-[#272730] text-zinc-400 cursor-pointer"
@@ -239,41 +239,41 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                   <Lucide.ChevronsUpDown className="h-4 w-4" />
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[150px]">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display w-[120px] min-w-[120px]">
                 <button onClick={() => handleSort('orderId')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   N° de Remito {getSortIcon('orderId')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[140px]">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display w-[110px] min-w-[110px]">
                 <button onClick={() => handleSort('emissionDate')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Fecha Emisión {getSortIcon('emissionDate')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[140px]">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display w-[110px] min-w-[110px]">
                 <button onClick={() => handleSort('conformeDate')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Fecha Conforme {getSortIcon('conformeDate')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[160px]">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display w-[145px] min-w-[145px]">
                 <button onClick={() => handleSort('daysElapsed')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Días Hábiles {getSortIcon('daysElapsed')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[180px]">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display w-[110px] min-w-[110px]">
                 <button onClick={() => handleSort('localidad')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Localidad {getSortIcon('localidad')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[200px]">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[180px] max-w-[260px]">
                 <button onClick={() => handleSort('client')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Cliente {getSortIcon('client')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[140px]">
+              <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display w-[120px] min-w-[120px]">
                 Estado SLA
               </th>
               {mapping?.statusKey && (
-                <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[190px]">
+                <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display w-[150px] min-w-[150px]">
                   Estado Viaje (Excel)
                 </th>
               )}
@@ -306,16 +306,16 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                           )}
                         </button>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold text-indigo-400 font-display">
+                      <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold text-indigo-400 font-display w-[120px] min-w-[120px]">
                         {record.orderId}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300">
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 w-[110px] min-w-[110px]">
                         {formatDate(record.emissionDate)}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300">
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 w-[110px] min-w-[110px]">
                         {formatDate(record.conformeDate)}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm font-mono font-medium">
+                      <td className="whitespace-nowrap px-4 py-3 text-sm font-mono font-medium w-[145px] min-w-[145px]">
                         {record.daysElapsed !== null ? (
                           <div className="flex items-center">
                             <span className="text-zinc-100">{record.daysElapsed}</span>
@@ -333,13 +333,13 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                           </span>
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300">
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 w-[110px] min-w-[110px]">
                         {record.localidad || '—'}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300">
+                      <td className="px-4 py-3 text-sm text-zinc-300 break-words whitespace-normal min-w-[180px] max-w-[260px]">
                         {record.client}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-center text-sm">
+                      <td className="px-4 py-3 text-center text-sm w-[120px] min-w-[120px]">
                         {record.status === 'A tiempo' && (
                           <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
                             <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]"></span>
@@ -365,7 +365,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                         )}
                       </td>
                       {mapping?.statusKey && (
-                        <td className="whitespace-nowrap px-4 py-3 text-center text-sm">
+                        <td className="px-4 py-3 text-center text-sm w-[150px] min-w-[150px]">
                           {(() => {
                             const val = record.originalRow[mapping.statusKey];
                             if (val === null || val === undefined || val === '') {
