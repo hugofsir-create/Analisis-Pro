@@ -297,54 +297,54 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
 
       {/* Grid Table */}
       <div className="overflow-x-auto custom-scrollbar w-full">
-        <table className="min-w-max w-full divide-y divide-[#1F1F24] table-auto">
+        <table className="min-w-full w-full divide-y divide-[#1F1F24] table-auto">
           <thead className="bg-[#16161A]/60">
             <tr>
-              <th scope="col" className="w-10 px-3 py-3 text-center">
+              <th scope="col" className="w-8 px-2 py-2.5 text-center">
                 <button 
                   onClick={toggleAllRows}
                   className="rounded-sm p-1 hover:bg-[#272730] text-zinc-400 cursor-pointer"
                   title="Expandir/Contraer todos"
                 >
-                  <Lucide.ChevronsUpDown className="h-4 w-4" />
+                  <Lucide.ChevronsUpDown className="h-3.5 w-3.5" />
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[140px]">
+              <th scope="col" className="px-2 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[95px]">
                 <button onClick={() => handleSort('orderId')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
-                  N° de Remito {getSortIcon('orderId')}
+                  N° Remito {getSortIcon('orderId')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[130px]">
+              <th scope="col" className="px-1.5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[85px]">
                 <button onClick={() => handleSort('emissionDate')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
-                  Fecha Emisión {getSortIcon('emissionDate')}
+                  F. Emisión {getSortIcon('emissionDate')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[120px]">
+              <th scope="col" className="px-1.5 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[85px]">
                 <button onClick={() => handleSort('conformeDate')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
-                  Fecha Conforme {getSortIcon('conformeDate')}
+                  F. Conf. {getSortIcon('conformeDate')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[160px]">
+              <th scope="col" className="px-2 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[80px]">
                 <button onClick={() => handleSort('daysElapsed')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
-                  Días Hábiles {getSortIcon('daysElapsed')}
+                  Días {getSortIcon('daysElapsed')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[120px]">
+              <th scope="col" className="px-2 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[100px]">
                 <button onClick={() => handleSort('localidad')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Localidad {getSortIcon('localidad')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[180px]">
+              <th scope="col" className="px-2 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[130px]">
                 <button onClick={() => handleSort('client')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Cliente {getSortIcon('client')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[140px]">
+              <th scope="col" className="px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[95px]">
                 Estado SLA
               </th>
               {mapping?.statusKey && (
-                <th scope="col" className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[180px]">
-                  Estado Viaje (Excel)
+                <th scope="col" className="px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[110px]">
+                  Estado Viaje
                 </th>
               )}
             </tr>
@@ -364,78 +364,75 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                 return (
                   <React.Fragment key={record.id}>
                     <tr className={`group hover:bg-indigo-500/5 transition-colors duration-200 ${isExpanded ? 'bg-indigo-950/10' : ''}`}>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-2 py-2 text-center">
                         <button
                           onClick={() => toggleRow(record.id)}
                           className="rounded-full p-1 hover:bg-[#1F1F24] text-zinc-400 hover:text-white focus:outline-none cursor-pointer transition-colors"
                         >
                           {isExpanded ? (
-                            <Lucide.ChevronUp className="h-4 w-4" />
+                            <Lucide.ChevronUp className="h-3.5 w-3.5" />
                           ) : (
-                            <Lucide.ChevronDown className="h-4 w-4" />
+                            <Lucide.ChevronDown className="h-3.5 w-3.5" />
                           )}
                         </button>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold text-indigo-400 font-display min-w-[140px]">
+                      <td className="whitespace-nowrap px-2 py-2 text-xs font-semibold text-indigo-400 font-display min-w-[95px]">
                         {record.orderId}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 min-w-[130px]">
+                      <td className="whitespace-nowrap px-1.5 py-2 text-xs text-zinc-300 min-w-[85px]">
                         {formatDate(record.emissionDate)}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 min-w-[120px]">
+                      <td className="whitespace-nowrap px-1.5 py-2 text-xs text-zinc-300 min-w-[85px]">
                         {formatDate(record.conformeDate)}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm font-mono font-medium min-w-[160px]">
+                      <td className="whitespace-nowrap px-2 py-2 text-xs font-mono font-medium min-w-[80px]">
                         {record.daysElapsed !== null ? (
-                          <div className="flex items-center">
-                            <span className="text-zinc-100">{record.daysElapsed}</span>
-                            <span className="ml-1 text-xs text-zinc-500">días hábiles</span>
-                          </div>
+                          <span className="text-zinc-100">{record.daysElapsed} d.</span>
                         ) : record.emissionDate ? (
-                          <div className="flex items-center text-amber-500 animate-pulse-slow" title="Días hábiles transcurridos hasta hoy para este pedido pendiente">
-                            <Lucide.Clock className="mr-1.5 h-3.5 w-3.5 animate-pulse shrink-0" />
-                            <span className="font-bold">{calculateDaysBetween(record.emissionDate, new Date())}</span>
-                            <span className="ml-1 text-[11px] text-amber-500/80 font-sans font-normal">d. hábiles (Pendiente)</span>
+                          <div className="flex items-center text-amber-500 animate-pulse-slow" title="Días transcurridos hasta hoy (Pendiente)">
+                            <Lucide.Clock className="mr-1 h-3 w-3 shrink-0" />
+                            <span className="font-bold ml-1">{calculateDaysBetween(record.emissionDate, new Date())} d.</span>
+                            <span className="ml-1 text-[9px] text-amber-500/70 shrink-0">(Pend.)</span>
                           </div>
                         ) : (
                           <span className="text-amber-400 font-sans text-xs flex items-center">
-                            <Lucide.Clock className="mr-1 h-3.5 w-3.5" /> Pendiente
+                            <Lucide.Clock className="mr-1 h-3 w-3" /> Pendiente
                           </span>
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-300 min-w-[120px]">
-                        {record.localidad || '—'}
+                      <td className="whitespace-nowrap px-2 py-2 text-[11px] text-zinc-300 min-w-[100px]" title={record.localidad || '—'}>
+                        <span className="block truncate max-w-[100px]">{record.localidad || '—'}</span>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-300 min-w-[180px]">
-                        {record.client}
+                      <td className="whitespace-nowrap px-2 py-2 text-[11px] text-zinc-300 min-w-[130px]" title={record.client}>
+                        <span className="block truncate max-w-[130px]">{record.client}</span>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-center text-sm min-w-[140px]">
+                      <td className="whitespace-nowrap px-2 py-2 text-center text-xs min-w-[95px]">
                         {record.status === 'A tiempo' && (
-                          <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
-                            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]"></span>
+                          <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
+                            <span className="mr-1 h-1 w-1 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]"></span>
                             A tiempo
                           </span>
                         )}
                         {record.status === 'Atrasado' && (
-                          <span className="inline-flex items-center rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-400 border border-rose-500/20">
-                            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(248,113,113,0.6)]"></span>
+                          <span className="inline-flex items-center rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold text-rose-400 border border-rose-500/20">
+                            <span className="mr-1 h-1 w-1 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(248,113,113,0.6)]"></span>
                             Atrasado
                           </span>
                         )}
                         {record.status === 'Pendiente' && (
-                          <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-400 border border-amber-500/20">
-                            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]"></span>
+                          <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 border border-amber-500/20">
+                            <span className="mr-1 h-1 w-1 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]"></span>
                             Pendiente
                           </span>
                         )}
                         {record.status === 'Sin Datos' && (
-                          <span className="inline-flex items-center rounded-full bg-zinc-800/60 px-2.5 py-0.5 text-xs font-semibold text-zinc-300 border border-zinc-700/50">
+                          <span className="inline-flex items-center rounded-full bg-zinc-800/60 px-2 py-0.5 text-[10px] font-semibold text-zinc-300 border border-zinc-700/50">
                             Incompleto
                           </span>
                         )}
                       </td>
                       {mapping?.statusKey && (
-                        <td className="whitespace-nowrap px-4 py-3 text-center text-sm min-w-[180px]">
+                        <td className="whitespace-nowrap px-2 py-2 text-center text-xs min-w-[110px]">
                           {(() => {
                             const val = record.originalRow[mapping.statusKey];
                             if (val === null || val === undefined || val === '') {
@@ -462,9 +459,9 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                             }
                             
                             return (
-                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeStyle}`}>
-                                <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${dotStyle}`}></span>
-                                {valStr}
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${badgeStyle}`} title={valStr}>
+                                <span className={`mr-1 h-1 w-1 rounded-full ${dotStyle}`}></span>
+                                <span className="block truncate max-w-[95px]">{valStr}</span>
                               </span>
                             );
                           })()}
