@@ -21,6 +21,18 @@ type SortOrder = 'asc' | 'desc';
 export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays, mapping }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [clientFilter, setClientFilter] = useState<string>('all');
+
+  // Compute unique clients for filter dropdown
+  const uniqueClients = useMemo(() => {
+    const clientsSet = new Set<string>();
+    records.forEach(r => {
+      if (r.client && r.client.trim() !== '' && r.client !== 'No Especificado') {
+        clientsSet.add(r.client.trim());
+      }
+    });
+    return Array.from(clientsSet).sort((a, b) => a.localeCompare(b));
+  }, [records]);
   
   // Sorting state
   const [sortField, setSortField] = useState<SortField>('emissionDate');
@@ -84,6 +96,11 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
       result = result.filter(r => r.status === statusFilter);
     }
 
+    // Client filter
+    if (clientFilter !== 'all') {
+      result = result.filter(r => r.client === clientFilter);
+    }
+
     // Sort
     result.sort((a, b) => {
       let valA: any = a[sortField];
@@ -119,7 +136,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
     });
 
     return result;
-  }, [records, searchTerm, statusFilter, sortField, sortOrder]);
+  }, [records, searchTerm, statusFilter, clientFilter, sortField, sortOrder]);
 
   // Paginated records
   const paginatedRecords = useMemo(() => {
@@ -165,7 +182,43 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
 
   const formatDate = (date: Date | null) => {
     if (!date) return <span className="text-gray-400 dark:text-gray-600">—</span>;
-    return <span className="font-medium text-gray-700 dark:text-gray-300">{date.toLocaleDateString('es-ES')}</span>;
+    return <span className="font-medium text-gray-700 dark:text-gray-300">{formatCellVal(date)}</span>;
+  };
+
+  const formatCellVal = (val: any): string => {
+    if (val === null || val === undefined || val === '') return '';
+    
+    // Check if it is a Date instance
+    if (val instanceof Date) {
+      if (isNaN(val.getTime())) return '';
+      const day = String(val.getDate()).padStart(2, '0');
+      const month = String(val.getMonth() + 1).padStart(2, '0');
+      const year = val.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Check if it is a string representing a Date
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      // Avoid parsing simple short numeric strings as dates
+      if (!/^\d+$/.test(trimmed) && trimmed.length > 5) {
+        // If it looks like a date (contains timezone, "GMT", "T" followed by time, or dashes/slashes/month names)
+        const isDatePattern = /GMT|T\d{2}:\d{2}/i.test(trimmed) || 
+                              /\d{2,4}[-/]\d{1,2}[-/]\d{1,4}/.test(trimmed) ||
+                              /jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec/i.test(trimmed);
+        if (isDatePattern) {
+          const parsedDate = new Date(trimmed);
+          if (!isNaN(parsedDate.getTime())) {
+            const day = String(parsedDate.getDate()).padStart(2, '0');
+            const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+            const year = parsedDate.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
+        }
+      }
+    }
+    
+    return String(val);
   };
 
   const getSortIcon = (field: SortField) => {
@@ -211,6 +264,23 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
               <Lucide.Filter className="h-4 w-4" />
             </div>
           </div>
+
+          {/* Filter by Client */}
+          <div className="relative w-full sm:w-52">
+            <select
+              value={clientFilter}
+              onChange={(e) => { setClientFilter(e.target.value); setCurrentPage(1); }}
+              className="w-full appearance-none rounded-lg border border-[#2A2A32] bg-[#16161A] px-3 py-2 text-sm text-zinc-200 focus:border-indigo-500/80 focus:bg-[#1E1E24] focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+            >
+              <option value="all">Todos los Clientes</option>
+              {uniqueClients.map(client => (
+                <option key={client} value={client}>{client}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-500">
+              <Lucide.User className="h-4 w-4" />
+            </div>
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -249,7 +319,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                   Fecha Emisión {getSortIcon('emissionDate')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[140px]">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[120px]">
                 <button onClick={() => handleSort('conformeDate')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Fecha Conforme {getSortIcon('conformeDate')}
                 </button>
@@ -259,12 +329,12 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                   Días Hábiles {getSortIcon('daysElapsed')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[130px]">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[120px]">
                 <button onClick={() => handleSort('localidad')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Localidad {getSortIcon('localidad')}
                 </button>
               </th>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[240px]">
+              <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[180px]">
                 <button onClick={() => handleSort('client')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
                   Cliente {getSortIcon('client')}
                 </button>
@@ -312,7 +382,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 min-w-[130px]">
                         {formatDate(record.emissionDate)}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 min-w-[140px]">
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 min-w-[120px]">
                         {formatDate(record.conformeDate)}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm font-mono font-medium min-w-[160px]">
@@ -333,10 +403,10 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                           </span>
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 min-w-[130px]">
+                      <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-300 min-w-[120px]">
                         {record.localidad || '—'}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-300 min-w-[240px]">
+                      <td className="whitespace-nowrap px-4 py-3 text-xs text-zinc-300 min-w-[180px]">
                         {record.client}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-center text-sm min-w-[140px]">
@@ -423,11 +493,11 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                               </div>
                               <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-2">
                                 <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Fecha Emisión</span>
-                                <span className="text-xs font-medium text-zinc-100">{record.emissionDate ? record.emissionDate.toLocaleDateString('es-ES') : '—'}</span>
+                                <span className="text-xs font-medium text-zinc-100">{record.emissionDate ? formatCellVal(record.emissionDate) : '—'}</span>
                               </div>
                               <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-2">
                                 <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Fecha Conforme</span>
-                                <span className="text-xs font-medium text-zinc-100">{record.conformeDate ? record.conformeDate.toLocaleDateString('es-ES') : '—'}</span>
+                                <span className="text-xs font-medium text-zinc-100">{record.conformeDate ? formatCellVal(record.conformeDate) : '—'}</span>
                               </div>
                               <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-2">
                                 <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Días Transcurridos</span>
@@ -436,11 +506,12 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                               
                               {/* Display every other original column */}
                               {Object.entries(record.originalRow).map(([key, value]) => {
+                                const formattedVal = formatCellVal(value);
                                 return (
                                   <div key={key} className="rounded-md border border-[#222227] bg-[#16161A] p-2">
                                     <span className="block text-[10px] font-medium text-zinc-400 truncate" title={key}>{key}</span>
-                                    <span className="text-xs font-medium text-zinc-100 truncate block animate-fade-in" title={String(value)}>
-                                      {value !== null && value !== undefined && value !== '' ? String(value) : <span className="text-zinc-600">vacío</span>}
+                                    <span className="text-xs font-medium text-zinc-100 truncate block animate-fade-in" title={formattedVal || 'vacío'}>
+                                      {formattedVal !== '' ? formattedVal : <span className="text-zinc-600">vacío</span>}
                                     </span>
                                   </div>
                                 );
