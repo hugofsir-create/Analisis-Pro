@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { DeliveryRecord, ColumnMapping } from '../types';
 import * as Lucide from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -22,6 +22,11 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [clientFilter, setClientFilter] = useState<string>('all');
+  
+  // Multi-select Travel Status filter states
+  const [selectedTravelStatuses, setSelectedTravelStatuses] = useState<string[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Compute unique clients for filter dropdown
   const uniqueClients = useMemo(() => {
@@ -33,6 +38,22 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
     });
     return Array.from(clientsSet).sort((a, b) => a.localeCompare(b));
   }, [records]);
+
+  // Compute unique travel statuses for filter dropdown
+  const uniqueTravelStatuses = useMemo(() => {
+    if (!mapping?.statusKey) return [];
+    const statusSet = new Set<string>();
+    records.forEach(r => {
+      const val = r.originalRow[mapping.statusKey!];
+      if (val !== null && val !== undefined) {
+        const valStr = String(val).trim();
+        if (valStr !== '') {
+          statusSet.add(valStr);
+        }
+      }
+    });
+    return Array.from(statusSet).sort((a, b) => a.localeCompare(b));
+  }, [records, mapping]);
   
   // Sorting state
   const [sortField, setSortField] = useState<SortField>('emissionDate');
@@ -41,6 +62,40 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // Close travel status dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Multi-select actions for travel status filter
+  const handleTravelStatusToggle = (status: string) => {
+    setSelectedTravelStatuses(prev => {
+      const next = prev.includes(status)
+        ? prev.filter(s => s !== status)
+        : [...prev, status];
+      setCurrentPage(1);
+      return next;
+    });
+  };
+
+  const handleSelectAllTravelStatuses = () => {
+    setSelectedTravelStatuses([...uniqueTravelStatuses]);
+    setCurrentPage(1);
+  };
+
+  const handleClearTravelStatuses = () => {
+    setSelectedTravelStatuses([]);
+    setCurrentPage(1);
+  };
 
   // Expanded rows state
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -101,6 +156,14 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
       result = result.filter(r => r.client === clientFilter);
     }
 
+    // Travel status filter (multiple selection)
+    if (selectedTravelStatuses.length > 0 && mapping?.statusKey) {
+      result = result.filter(r => {
+        const val = r.originalRow[mapping.statusKey!];
+        return val !== null && val !== undefined && selectedTravelStatuses.includes(String(val).trim());
+      });
+    }
+
     // Sort
     result.sort((a, b) => {
       let valA: any = a[sortField];
@@ -136,7 +199,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
     });
 
     return result;
-  }, [records, searchTerm, statusFilter, clientFilter, sortField, sortOrder]);
+  }, [records, searchTerm, statusFilter, clientFilter, selectedTravelStatuses, mapping, sortField, sortOrder]);
 
   // Paginated records
   const paginatedRecords = useMemo(() => {
@@ -281,6 +344,69 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
               <Lucide.User className="h-4 w-4" />
             </div>
           </div>
+
+          {/* Filter by Travel Status (Multi-select) */}
+          {mapping?.statusKey && uniqueTravelStatuses.length > 0 && (
+            <div className="relative w-full sm:w-56" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex w-full items-center justify-between rounded-lg border border-[#2A2A32] bg-[#16161A] px-3 py-2 text-sm text-zinc-200 hover:bg-[#1E1E24] focus:border-indigo-500/80 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-all cursor-pointer text-left"
+              >
+                <span className="flex items-center space-x-2 truncate">
+                  <Lucide.Tag className="h-4 w-4 text-zinc-500 shrink-0" />
+                  <span className="truncate">
+                    {selectedTravelStatuses.length === 0
+                      ? 'Todos los Estados Viaje'
+                      : selectedTravelStatuses.length === 1
+                      ? selectedTravelStatuses[0]
+                      : `${selectedTravelStatuses.length} estados sel.`}
+                  </span>
+                </span>
+                <Lucide.ChevronDown className={`h-4 w-4 text-zinc-500 shrink-0 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute left-0 mt-1.5 w-full min-w-[240px] rounded-lg border border-[#2A2A32] bg-[#16161A] p-2 shadow-xl z-50">
+                  <div className="flex items-center justify-between border-b border-[#2A2A32] pb-1.5 mb-1.5 px-1">
+                    <button
+                      type="button"
+                      onClick={handleSelectAllTravelStatuses}
+                      className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 focus:outline-none cursor-pointer"
+                    >
+                      Seleccionar todos
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClearTravelStatuses}
+                      className="text-[11px] font-medium text-zinc-400 hover:text-zinc-300 focus:outline-none cursor-pointer"
+                    >
+                      Limpiar
+                    </button>
+                  </div>
+                  <div className="max-h-52 overflow-y-auto custom-scrollbar space-y-0.5">
+                    {uniqueTravelStatuses.map(status => {
+                      const isChecked = selectedTravelStatuses.includes(status);
+                      return (
+                        <label
+                          key={status}
+                          className="flex items-center space-x-2 rounded-md px-2 py-1.5 text-xs text-zinc-300 hover:bg-[#1E1E24] cursor-pointer transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleTravelStatusToggle(status)}
+                            className="h-3.5 w-3.5 rounded border-[#2D2D38] bg-[#0E0E11] text-indigo-500 focus:ring-indigo-500/30 focus:ring-offset-0 cursor-pointer"
+                          />
+                          <span className="truncate select-none">{status}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
