@@ -15,7 +15,7 @@ interface DeliveryGridProps {
   mapping?: ColumnMapping;
 }
 
-type SortField = 'orderId' | 'emissionDate' | 'conformeDate' | 'daysElapsed' | 'carrier' | 'client' | 'localidad';
+type SortField = 'orderId' | 'emissionDate' | 'conformeDate' | 'daysElapsed' | 'carrier' | 'client' | 'subcliente' | 'localidad';
 type SortOrder = 'asc' | 'desc';
 
 export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays, mapping }) => {
@@ -140,6 +140,8 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
         r.orderId.toLowerCase().includes(term) ||
         r.carrier.toLowerCase().includes(term) ||
         r.client.toLowerCase().includes(term) ||
+        (r.subcliente && r.subcliente.toLowerCase().includes(term)) ||
+        (r.localidad && r.localidad.toLowerCase().includes(term)) ||
         Object.values(r.originalRow).some(val => 
           String(val).toLowerCase().includes(term)
         )
@@ -228,6 +230,8 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
         'DÍAS TRANSCURRIDOS': r.daysElapsed !== null 
           ? r.daysElapsed 
           : (pendingDays !== null ? `${pendingDays} (Pendiente)` : 'Pendiente'),
+        'CLIENTE': r.client || '—',
+        'SUBCLIENTE': r.subcliente || '—',
         'ESTADO DE ENTREGA': r.status,
         'SLA OBJETIVO (DÍAS)': targetDays,
         'DIFERENCIA SLA (DÍAS)': r.daysElapsed !== null 
@@ -465,6 +469,11 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                   Cliente {getSortIcon('client')}
                 </button>
               </th>
+              <th scope="col" className="px-2 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[120px]">
+                <button onClick={() => handleSort('subcliente')} className="flex items-center font-semibold uppercase focus:outline-none cursor-pointer hover:text-white">
+                  Subcliente {getSortIcon('subcliente')}
+                </button>
+              </th>
               <th scope="col" className="px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-zinc-400 font-display min-w-[95px]">
                 Estado SLA
               </th>
@@ -478,7 +487,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
           <tbody className="divide-y divide-[#1F1F24] bg-[#0E0E11]">
             {paginatedRecords.length === 0 ? (
               <tr>
-                <td colSpan={mapping?.statusKey ? 9 : 8} className="py-12 text-center">
+                <td colSpan={mapping?.statusKey ? 10 : 9} className="py-12 text-center">
                   <Lucide.Inbox className="mx-auto h-12 w-12 text-zinc-600" />
                   <h3 className="mt-2 text-sm font-semibold text-zinc-300">Ningún registro encontrado</h3>
                   <p className="mt-1 text-xs text-zinc-500">Prueba ajustando los filtros o el término de búsqueda.</p>
@@ -531,6 +540,9 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                       </td>
                       <td className="whitespace-nowrap px-2 py-2 text-[11px] text-zinc-300 min-w-[130px]" title={record.client}>
                         <span className="block truncate max-w-[130px]">{record.client}</span>
+                      </td>
+                      <td className="whitespace-nowrap px-2 py-2 text-[11px] text-zinc-300 min-w-[120px]" title={record.subcliente || '—'}>
+                        <span className="block truncate max-w-[120px]">{record.subcliente || '—'}</span>
                       </td>
                       <td className="whitespace-nowrap px-2 py-2 text-center text-xs min-w-[95px]">
                         {record.status === 'A tiempo' && (
@@ -598,7 +610,7 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                     {/* Expanded Detail Row (Showing EACH column of the Excel file row) */}
                     {isExpanded && (
                       <tr className="bg-[#0A0A0C]">
-                        <td colSpan={mapping?.statusKey ? 9 : 8} className="px-6 py-4 border-y border-[#1F1F24]">
+                        <td colSpan={mapping?.statusKey ? 10 : 9} className="px-6 py-4 border-y border-[#1F1F24]">
                           <div className="rounded-lg border border-[#1F1F24] bg-[#121215] p-4">
                             <h5 className="mb-3 flex items-center text-xs font-bold uppercase tracking-wider text-zinc-400 font-display">
                               <Lucide.Info className="mr-1.5 h-4 w-4 text-indigo-400" />
@@ -614,6 +626,16 @@ export const DeliveryGrid: React.FC<DeliveryGridProps> = ({ records, targetDays,
                                 <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Localidad de Destino</span>
                                 <span className="text-xs font-medium text-zinc-100">{record.localidad || '—'}</span>
                               </div>
+                              <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-2">
+                                <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Cliente</span>
+                                <span className="text-xs font-medium text-zinc-100 truncate block" title={record.client}>{record.client}</span>
+                              </div>
+                              {record.subcliente && (
+                                <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-2">
+                                  <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Subcliente (Col. D)</span>
+                                  <span className="text-xs font-medium text-zinc-100 truncate block" title={record.subcliente}>{record.subcliente}</span>
+                                </div>
+                              )}
                               <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-2">
                                 <span className="block text-[10px] font-semibold text-indigo-400 uppercase tracking-wide">Fecha Emisión</span>
                                 <span className="text-xs font-medium text-zinc-100">{record.emissionDate ? formatCellVal(record.emissionDate) : '—'}</span>

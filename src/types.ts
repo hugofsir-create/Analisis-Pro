@@ -11,6 +11,7 @@ export interface ColumnMapping {
   statusKey: string;
   orderIdKey: string;
   localidadKey?: string;
+  subclienteKey?: string;
 }
 
 export interface DeliveryRecord {
@@ -21,6 +22,7 @@ export interface DeliveryRecord {
   daysElapsed: number | null; // Days from emission to conforme
   carrier: string; // Transportista / Courier
   client: string; // Cliente / Destinatario
+  subcliente?: string; // Subcliente / Destinatario final (Columna D)
   status: 'A tiempo' | 'Atrasado' | 'Pendiente' | 'Sin Datos';
   originalRow: Record<string, any>; // Keep all original excel columns
   localidad?: string; // Localidad de destino

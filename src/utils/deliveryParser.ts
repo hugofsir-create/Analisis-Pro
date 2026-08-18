@@ -116,6 +116,11 @@ export function autoDetectMappings(keys: string[]): ColumnMapping {
     'estado de viaje', 'estado_viaje', 'estado de entrega', 'estado_entrega', 'estado de envio', 'estado de los viajes', 'estado del viaje', 'estado', 'status', 'situacion', 'state', 'trip status', 'delivery status'
   ];
 
+  const subclienteKeywords = [
+    'subcliente', 'sub-cliente', 'sub cliente', 'sub_cliente', 'sub client', 'subclient',
+    'subcuenta', 'sub-cuenta', 'sub cuenta', 'sucursal', 'local', 'punto de venta', 'pdv', 'destinatario final'
+  ];
+
   // Pick first string or empty if not detected
   const emissionDateKey = findMatch(emissionKeywords) || keys.find(k => k.toLowerCase().includes('emisi')) || '';
   const conformeDateKey = findMatch(conformeKeywords) || keys.find(k => k.toLowerCase().includes('confor') || k.toLowerCase().includes('entreg')) || '';
@@ -125,6 +130,15 @@ export function autoDetectMappings(keys: string[]): ColumnMapping {
   const localidadKey = findMatch(localidadKeywords) || '';
   const statusKey = findMatch(statusKeywords) || keys.find(k => k.toLowerCase().includes('est') || k.toLowerCase().includes('stat')) || '';
 
+  // Auto-detect subcliente by keyword or fallback to column D (index 3) if available
+  let subclienteKey = findMatch(subclienteKeywords);
+  if (!subclienteKey && keys.length >= 4) {
+    const colD = keys[3];
+    if (colD && colD !== emissionDateKey && colD !== conformeDateKey && colD !== orderIdKey) {
+      subclienteKey = colD;
+    }
+  }
+
   return {
     emissionDateKey,
     conformeDateKey,
@@ -132,7 +146,8 @@ export function autoDetectMappings(keys: string[]): ColumnMapping {
     clientKey,
     statusKey,
     orderIdKey,
-    localidadKey
+    localidadKey,
+    subclienteKey: subclienteKey || ''
   };
 }
 
@@ -203,6 +218,9 @@ export function processRawRows(
     const orderId = String(row[mapping.orderIdKey] || `ROW-${index + 1}`);
     const carrier = mapping.carrierKey ? String(row[mapping.carrierKey] || 'No Especificado') : 'No Especificado';
     const client = mapping.clientKey ? String(row[mapping.clientKey] || 'No Especificado') : 'No Especificado';
+    const subcliente = mapping.subclienteKey && row[mapping.subclienteKey] !== undefined && row[mapping.subclienteKey] !== null
+      ? String(row[mapping.subclienteKey]).trim()
+      : '';
 
     return {
       id: `rec-${index}`,
@@ -212,6 +230,7 @@ export function processRawRows(
       daysElapsed,
       carrier,
       client,
+      subcliente,
       status,
       originalRow: row,
       localidad
@@ -366,6 +385,10 @@ export function generateSampleData(): Record<string, any>[] {
     'Supermercados Alfa', 'Tiendas Beta', 'Distribuidora Gamma', 'Almacenes Delta', 
     'Comercial Omega', 'Farmacias Vida', 'Tecno Hogar', 'Librería Central'
   ];
+  const subclients = [
+    'Sucursal Centro', 'Sucursal Norte', 'Sucursal Sur', 'Local 102', 
+    'Plaza Principal', 'Sede Express', 'Bodega Central', 'Punto Retail'
+  ];
   const cities = ['Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Bucaramanga', 'Pereira'];
   const shippingTypes = ['Estándar', 'Express', 'Prioritario'];
 
@@ -411,6 +434,7 @@ export function generateSampleData(): Record<string, any>[] {
       'N° de remitos': `REM-2026-${1000 + i}`,
       'Fecha Emisión': formatShortDate(emissionDate),
       'Fecha Conforme': conformeDate ? formatShortDate(conformeDate as Date) : '',
+      'Subcliente': subclients[Math.floor(Math.random() * subclients.length)], // Columna D (index 3)
       'Transportista': carriers[Math.floor(Math.random() * carriers.length)],
       'Cliente': clients[Math.floor(Math.random() * clients.length)],
       'Localidad de destino': cities[Math.floor(Math.random() * cities.length)],

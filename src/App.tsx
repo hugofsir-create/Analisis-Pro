@@ -51,7 +51,8 @@ export default function App() {
         clientKey: '',
         statusKey: '',
         orderIdKey: '',
-        localidadKey: ''
+        localidadKey: '',
+        subclienteKey: ''
       };
     } catch {
       return {
@@ -61,7 +62,8 @@ export default function App() {
         clientKey: '',
         statusKey: '',
         orderIdKey: '',
-        localidadKey: ''
+        localidadKey: '',
+        subclienteKey: ''
       };
     }
   });
@@ -276,7 +278,8 @@ export default function App() {
       clientKey: '',
       statusKey: '',
       orderIdKey: '',
-      localidadKey: ''
+      localidadKey: '',
+      subclienteKey: ''
     });
   };
 
